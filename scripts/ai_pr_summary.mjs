@@ -44,29 +44,17 @@ async function postPrComment(markdown) {
 }
 
 
-function writeSummary(markdown) {
-  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
-  if (!summaryPath) {
-    console.log(markdown);
-    return;
-  }
-  fs.appendFileSync(summaryPath, `\n\n## 🤖 AI PR Review Summary\n\n${markdown}\n`, "utf-8");
-}
-
 async function main() {
   
-  //load dotenv variables
-    import('dotenv/config');
-
   const baseSha = process.env.BASE_SHA;
   const headSha = process.env.HEAD_SHA;
 
   if (!process.env.COHERE_API_KEY) {
-    writeSummary("⚠️ Missing `COHERE_API_KEY`. Add it as a GitHub Actions secret.");
+    await postPrComment("⚠️ Missing `COHERE_API_KEY`. Add it as a GitHub Actions secret.");
     process.exit(0);
   }
   if (!baseSha || !headSha) {
-    writeSummary("⚠️ Missing `BASE_SHA` or `HEAD_SHA` environment variables.");
+    await postPrComment("⚠️ Missing `BASE_SHA` or `HEAD_SHA` environment variables.");
     process.exit(0);
   }
 
@@ -120,10 +108,9 @@ Rules:
       `\n\n### Suggested test plan\n` +
       result.test_plan.map(x => `- ${x}`).join("\n");
 
-    writeSummary(md);
     await postPrComment(md);
   } catch (err) {
-    writeSummary(`⚠️ AI summary failed (this can happen on trial limits). Error:\n\n\`${String(err)}\``);
+    await postPrComment(`⚠️ AI summary failed (this can happen on trial limits). Error:\n\n\`${String(err)}\``);
     process.exit(0);
   }
 }
