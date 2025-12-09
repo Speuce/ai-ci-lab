@@ -69,7 +69,7 @@ Rules:
 
   const llm = new ChatCohere({
     // Uses COHERE_API_KEY from env (as shown in LangChain's Cohere docs).
-    model: "command-r-plus",
+    model: "command-a-03-2025",
     temperature: 0.2
   });
 
