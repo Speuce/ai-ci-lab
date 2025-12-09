@@ -1,0 +1,15 @@
+{
+  "name": "ai-ci-langchain-lab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "ai:summary": "node scripts/ai_pr_summary.mjs"
+  },
+  "dependencies": {
+    "@langchain/cohere": "latest",
+    "@langchain/core": "latest",
+    "zod": "latest",
+    "dotenv": "latest"
+  }
+}
