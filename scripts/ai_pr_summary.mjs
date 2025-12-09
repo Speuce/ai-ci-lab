@@ -13,6 +13,37 @@ function gitDiff(baseSha, headSha) {
   return diff.length > 8000 ? diff.slice(0, 8000) : diff;
 }
 
+async function postPrComment(markdown) {
+  const token = process.env.GITHUB_TOKEN;
+  const repo = process.env.GITHUB_REPOSITORY; // owner/repo
+  const prNumber = process.env.PR_NUMBER;
+
+  if (!token || !repo || !prNumber) {
+    console.warn("Missing GitHub context; skipping PR comment.");
+    return;
+  }
+
+  const url = `https://api.github.com/repos/${repo}/issues/${prNumber}/comments`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/vnd.github+json"
+    },
+    body: JSON.stringify({
+      body: `## 🤖 AI PR Review Summary\n\n${markdown}`
+    })
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Failed to post PR comment: ${res.status} ${text}`);
+  }
+}
+
+
 function writeSummary(markdown) {
   const summaryPath = process.env.GITHUB_STEP_SUMMARY;
   if (!summaryPath) {
@@ -90,6 +121,7 @@ Rules:
       result.test_plan.map(x => `- ${x}`).join("\n");
 
     writeSummary(md);
+    await postPrComment(md);
   } catch (err) {
     writeSummary(`⚠️ AI summary failed (this can happen on trial limits). Error:\n\n\`${String(err)}\``);
     process.exit(0);
